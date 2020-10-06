@@ -44,7 +44,11 @@ class VendingMachineTest {
         machine.insertCoin(600, 40);
         machine.insertCoin(1200, 200);
         machine.insertCoin(1500, 90);
-        assertEquals(0, machine.getInsertedValue());
+
+        assertAll(
+                () -> assertEquals(0, machine.getInsertedValue()),
+                () -> assertEquals(3, machine.getChangeTray().get(Coin.INVALID))
+        );
     }
 
     @Test
@@ -87,8 +91,31 @@ class VendingMachineTest {
                 () -> assertEquals(2, machine.getDimes()),
                 () -> assertEquals(3, machine.getNickels()),
                 () -> assertEquals(3, machine.getChangeTray().get(Coin.QUARTER)),
-                () -> assertEquals(0, machine.getChangeTray().computeIfAbsent(Coin.DIME, k -> 0)),
-                () -> assertEquals(0, machine.getChangeTray().computeIfAbsent(Coin.NICKEL, k -> 0))
+                () -> assertEquals(0, machine.getChangeTray().getOrDefault(Coin.DIME, 0)),
+                () -> assertEquals(0, machine.getChangeTray().getOrDefault(Coin.NICKEL, 0)),
+                () -> assertEquals(0, machine.getInsertedCoins().get(Coin.QUARTER)),
+                () -> assertEquals(0, machine.getInsertedCoins().getOrDefault(Coin.DIME, 0)),
+                () -> assertEquals(0, machine.getInsertedCoins().getOrDefault(Coin.NICKEL, 0)),
+                () -> assertEquals(0, machine.getInsertedValue())
+        );
+    }
+
+    @Test
+    void should_notSellIfOutOfStock() {
+        insert25Cents(3);
+        setMachineProducts(0, 0, 0);
+        machine.selectProduct(Product.CANDY);
+        assertAll(
+                () -> assertEquals(1, machine.getQuarters()),
+                () -> assertEquals(2, machine.getDimes()),
+                () -> assertEquals(3, machine.getNickels()),
+                () -> assertEquals(0, machine.getProducts().get(Product.COLA)),
+                () -> assertEquals(0, machine.getProducts().get(Product.CANDY)),
+                () -> assertEquals(0, machine.getProducts().get(Product.CHIPS)),
+                () -> assertEquals(3, machine.getInsertedCoins().get(Coin.QUARTER)),
+                () -> assertEquals(0, machine.getInsertedCoins().getOrDefault(Coin.DIME, 0)),
+                () -> assertEquals(0, machine.getInsertedCoins().getOrDefault(Coin.NICKEL, 0)),
+                () -> assertEquals(75, machine.getInsertedValue())
         );
     }
 

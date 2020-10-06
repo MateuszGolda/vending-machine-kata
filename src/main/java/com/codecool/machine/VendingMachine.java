@@ -20,9 +20,11 @@ public class VendingMachine {
     }
 
     public void insertCoin(int weight, int size) {
-        Optional<Coin> optionalCoin = coinFactory.getCoin(weight, size);
-        optionalCoin.ifPresent(this::addInsertedCoin);
-        // TODO when coin is not recognized return it to the buyer
+        Coin coin = coinFactory.getCoin(weight, size);
+        if (!coin.equals(Coin.INVALID)) addInsertedCoin(coin);
+        else {
+            changeTray.merge(coin, 1, Integer::sum);
+        }
     }
 
     private void addInsertedCoin(Coin c) {
@@ -34,7 +36,9 @@ public class VendingMachine {
         if (product.cost <= insertedValue) {
             int rest = insertedValue - product.cost;
             Optional<Map<Coin, Integer>> change = computeChange(rest);
-            change.ifPresent((c) -> buyProduct(product, c));
+            if (products.containsKey(product) && products.get(product) > 0) {
+                change.ifPresent((c) -> buyProduct(product, c));
+            } else System.out.println("SOLD OUT");
         }
     }
 
@@ -56,15 +60,15 @@ public class VendingMachine {
     }
 
     private void mergeCoins(Map<Coin, Integer> machineCoins, Map<Coin, Integer> insertedCoins) {
-        machineCoins.merge(Coin.QUARTER, insertedCoins.computeIfAbsent(Coin.QUARTER, k -> 0), Integer::sum);
-        machineCoins.merge(Coin.DIME, insertedCoins.computeIfAbsent(Coin.DIME, k -> 0), Integer::sum);
-        machineCoins.merge(Coin.NICKEL, insertedCoins.computeIfAbsent(Coin.NICKEL, k -> 0), Integer::sum);
+        machineCoins.merge(Coin.QUARTER, insertedCoins.getOrDefault(Coin.QUARTER, 0), Integer::sum);
+        machineCoins.merge(Coin.DIME, insertedCoins.getOrDefault(Coin.DIME, 0), Integer::sum);
+        machineCoins.merge(Coin.NICKEL, insertedCoins.getOrDefault(Coin.NICKEL, 0), Integer::sum);
     }
 
     private void withdrawChange(Map<Coin, Integer> change) {
-        machineCoins.merge(Coin.QUARTER, -change.computeIfAbsent(Coin.QUARTER, k -> 0), Integer::sum);
-        machineCoins.merge(Coin.DIME, -change.computeIfAbsent(Coin.DIME, k -> 0), Integer::sum);
-        machineCoins.merge(Coin.NICKEL, -change.computeIfAbsent(Coin.NICKEL, k -> 0), Integer::sum);
+        machineCoins.merge(Coin.QUARTER, -change.getOrDefault(Coin.QUARTER, 0), Integer::sum);
+        machineCoins.merge(Coin.DIME, -change.getOrDefault(Coin.DIME, 0), Integer::sum);
+        machineCoins.merge(Coin.NICKEL, -change.getOrDefault(Coin.NICKEL, 0), Integer::sum);
 
         mergeCoins(changeTray, change);
     }
@@ -75,13 +79,13 @@ public class VendingMachine {
         if (rest == 0) return Optional.of(changeToReturn);
 
         int maxQuartersNeeded =
-                Math.min(machineCoins.computeIfAbsent(Coin.QUARTER, k -> 0), rest / Coin.QUARTER.value);
+                Math.min(machineCoins.getOrDefault(Coin.QUARTER, 0), rest / Coin.QUARTER.value);
 
         int maxDimesNeeded =
-                Math.min(machineCoins.computeIfAbsent(Coin.DIME, k -> 0), rest / Coin.DIME.value);
+                Math.min(machineCoins.getOrDefault(Coin.DIME, 0), rest / Coin.DIME.value);
 
         int maxNickelsNeeded =
-                Math.min(machineCoins.computeIfAbsent(Coin.NICKEL, k -> 0), rest / Coin.NICKEL.value);
+                Math.min(machineCoins.getOrDefault(Coin.NICKEL, 0), rest / Coin.NICKEL.value);
 
         if (maxQuartersNeeded * Coin.QUARTER.value
                 + maxDimesNeeded * Coin.DIME.value
@@ -123,18 +127,15 @@ public class VendingMachine {
     }
 
     public int getQuarters() {
-        machineCoins.putIfAbsent(Coin.QUARTER, 0);
-        return machineCoins.get(Coin.QUARTER);
+        return machineCoins.getOrDefault(Coin.QUARTER, 0);
     }
 
     public int getDimes() {
-        machineCoins.putIfAbsent(Coin.DIME, 0);
-        return machineCoins.get(Coin.DIME);
+        return machineCoins.getOrDefault(Coin.DIME, 0);
     }
 
     public int getNickels() {
-        machineCoins.putIfAbsent(Coin.NICKEL, 0);
-        return machineCoins.get(Coin.NICKEL);
+        return machineCoins.getOrDefault(Coin.NICKEL, 0);
     }
 
     public Map<Coin, Integer> getMachineCoins() {
