@@ -13,18 +13,10 @@ public class VendingMachine {
     private int insertedValue = 0;
 
     VendingMachine() {
-        products = initializeMapWith0s(Product.values());
-        machineCoins = initializeMapWith0s(Coin.values());
-        insertedCoins = initializeMapWith0s(Coin.values());
-        changeTray = initializeMapWith0s(Coin.values());
-    }
-
-    private <E extends Enum<E>> Map<E, Integer> initializeMapWith0s(E[] keys) {
-        Map<E, Integer> map = new HashMap<>();
-        for (E key : keys) {
-            map.put(key, 0);
-        }
-        return map;
+        products = new HashMap<>();
+        machineCoins = new HashMap<>();
+        insertedCoins = new HashMap<>();
+        changeTray = new HashMap<>();
     }
 
     public void insertCoin(int weight, int size) {
@@ -41,7 +33,7 @@ public class VendingMachine {
     public void selectProduct(Product product) {
         if (product.cost <= insertedValue) {
             int rest = insertedValue - product.cost;
-            Optional<Map<Coin, Integer>> change = makeChange(rest);
+            Optional<Map<Coin, Integer>> change = computeChange(rest);
             change.ifPresent((c) -> buyProduct(product, c));
         }
     }
@@ -49,28 +41,47 @@ public class VendingMachine {
     private void buyProduct(Product product, Map<Coin, Integer> change) {
         products.merge(product, -1, Integer::sum);
 
-        machineCoins.merge(Coin.QUARTER, -change.get(Coin.QUARTER), Integer::sum);
-        machineCoins.merge(Coin.DIME, -change.get(Coin.DIME), Integer::sum);
-        machineCoins.merge(Coin.NICKEL, -change.get(Coin.NICKEL), Integer::sum);
+        withdrawChange(change);
 
-        machineCoins.merge(Coin.QUARTER, insertedCoins.get(Coin.QUARTER), Integer::sum);
-        machineCoins.merge(Coin.DIME, insertedCoins.get(Coin.DIME), Integer::sum);
-        machineCoins.merge(Coin.NICKEL, insertedCoins.get(Coin.NICKEL), Integer::sum);
+        mergeCoins(machineCoins, insertedCoins);
+
+        clearInsertedCoins();
     }
 
-    private Optional<Map<Coin, Integer>> makeChange(int rest) {
-        Map<Coin, Integer> changeToReturn = initializeMapWith0s(Coin.values());
+    private void clearInsertedCoins() {
+        insertedCoins.put(Coin.QUARTER, 0);
+        insertedCoins.put(Coin.DIME, 0);
+        insertedCoins.put(Coin.NICKEL, 0);
+        insertedValue = 0;
+    }
+
+    private void mergeCoins(Map<Coin, Integer> machineCoins, Map<Coin, Integer> insertedCoins) {
+        machineCoins.merge(Coin.QUARTER, insertedCoins.computeIfAbsent(Coin.QUARTER, k -> 0), Integer::sum);
+        machineCoins.merge(Coin.DIME, insertedCoins.computeIfAbsent(Coin.DIME, k -> 0), Integer::sum);
+        machineCoins.merge(Coin.NICKEL, insertedCoins.computeIfAbsent(Coin.NICKEL, k -> 0), Integer::sum);
+    }
+
+    private void withdrawChange(Map<Coin, Integer> change) {
+        machineCoins.merge(Coin.QUARTER, -change.computeIfAbsent(Coin.QUARTER, k -> 0), Integer::sum);
+        machineCoins.merge(Coin.DIME, -change.computeIfAbsent(Coin.DIME, k -> 0), Integer::sum);
+        machineCoins.merge(Coin.NICKEL, -change.computeIfAbsent(Coin.NICKEL, k -> 0), Integer::sum);
+
+        mergeCoins(changeTray, change);
+    }
+
+    private Optional<Map<Coin, Integer>> computeChange(int rest) {
+        Map<Coin, Integer> changeToReturn = new HashMap<>();
 
         if (rest == 0) return Optional.of(changeToReturn);
 
         int maxQuartersNeeded =
-                Math.min(machineCoins.get(Coin.QUARTER), rest / Coin.QUARTER.value);
+                Math.min(machineCoins.computeIfAbsent(Coin.QUARTER, k -> 0), rest / Coin.QUARTER.value);
 
         int maxDimesNeeded =
-                Math.min(machineCoins.get(Coin.DIME), rest / Coin.DIME.value);
+                Math.min(machineCoins.computeIfAbsent(Coin.DIME, k -> 0), rest / Coin.DIME.value);
 
         int maxNickelsNeeded =
-                Math.min(machineCoins.get(Coin.NICKEL), rest / Coin.NICKEL.value);
+                Math.min(machineCoins.computeIfAbsent(Coin.NICKEL, k -> 0), rest / Coin.NICKEL.value);
 
         if (maxQuartersNeeded * Coin.QUARTER.value
                 + maxDimesNeeded * Coin.DIME.value
@@ -102,23 +113,27 @@ public class VendingMachine {
         return Optional.empty();
     }
 
+    public void returnCoins() {
+        changeTray.putAll(insertedCoins);
+        clearInsertedCoins();
+    }
+
     public int getInsertedValue() {
         return insertedValue;
     }
 
     public int getQuarters() {
-        return machineCoins.computeIfAbsent(Coin.QUARTER, this::zero);
-    }
-
-    private Integer zero(Coin coin) {
-        return 0;
+        machineCoins.putIfAbsent(Coin.QUARTER, 0);
+        return machineCoins.get(Coin.QUARTER);
     }
 
     public int getDimes() {
+        machineCoins.putIfAbsent(Coin.DIME, 0);
         return machineCoins.get(Coin.DIME);
     }
 
     public int getNickels() {
+        machineCoins.putIfAbsent(Coin.NICKEL, 0);
         return machineCoins.get(Coin.NICKEL);
     }
 
@@ -130,10 +145,11 @@ public class VendingMachine {
         return products;
     }
 
-    public void returnCoins() {
-        insertedCoins.replace(Coin.QUARTER, 0);
-        insertedCoins.replace(Coin.DIME, 0);
-        insertedCoins.replace(Coin.NICKEL, 0);
-        insertedValue = 0;
+    public Map<Coin, Integer> getInsertedCoins() {
+        return insertedCoins;
+    }
+
+    public Map<Coin, Integer> getChangeTray() {
+        return changeTray;
     }
 }

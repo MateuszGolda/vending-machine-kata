@@ -56,7 +56,10 @@ class VendingMachineTest {
                 () -> assertEquals(2, machine.getProducts().get(Product.CHIPS)),
                 () -> assertEquals(3, machine.getQuarters()),
                 () -> assertEquals(2, machine.getDimes()),
-                () -> assertEquals(3, machine.getNickels())
+                () -> assertEquals(3, machine.getNickels()),
+                () -> assertEquals(0, machine.getChangeTray().get(Coin.QUARTER)),
+                () -> assertEquals(0, machine.getChangeTray().get(Coin.DIME)),
+                () -> assertEquals(0, machine.getChangeTray().get(Coin.NICKEL))
         );
     }
 
@@ -70,7 +73,8 @@ class VendingMachineTest {
                 () -> assertEquals(1, machine.getProducts().get(Product.CANDY)),
                 () -> assertEquals(3, machine.getQuarters()),
                 () -> assertEquals(0, machine.getDimes()),
-                () -> assertEquals(8, machine.getNickels())
+                () -> assertEquals(8, machine.getNickels()),
+                () -> assertEquals(2, machine.getChangeTray().get(Coin.NICKEL))
         );
     }
 
@@ -81,10 +85,12 @@ class VendingMachineTest {
         assertAll(
                 () -> assertEquals(1, machine.getQuarters()),
                 () -> assertEquals(2, machine.getDimes()),
-                () -> assertEquals(3, machine.getNickels())
+                () -> assertEquals(3, machine.getNickels()),
+                () -> assertEquals(3, machine.getChangeTray().get(Coin.QUARTER)),
+                () -> assertEquals(0, machine.getChangeTray().computeIfAbsent(Coin.DIME, k -> 0)),
+                () -> assertEquals(0, machine.getChangeTray().computeIfAbsent(Coin.NICKEL, k -> 0))
         );
     }
-
 
     void setMachineMoney(int quarters, int dimes, int nickels) {
         Map<Coin, Integer> coins = machine.getMachineCoins();
