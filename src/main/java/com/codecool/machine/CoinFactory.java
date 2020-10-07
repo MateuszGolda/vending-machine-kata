@@ -1,7 +1,5 @@
 package com.codecool.machine;
 
-import java.util.Optional;
-
 public class CoinFactory {
     public Coin getCoin(int weight, int size) {
         for (Coin coin : Coin.values()) {

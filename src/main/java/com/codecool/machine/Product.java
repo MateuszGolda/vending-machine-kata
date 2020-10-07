@@ -1,7 +1,7 @@
 package com.codecool.machine;
 
 public enum Product {
-    COLA(100), CHIPS(50), CANDY(65);
+    COLA(100), CANDY(65), CHIPS(50);
 
     final int cost;
 

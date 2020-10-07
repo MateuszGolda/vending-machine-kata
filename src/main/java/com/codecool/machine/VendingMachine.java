@@ -6,14 +6,17 @@ import java.util.Optional;
 
 public class VendingMachine {
     private final Map<Product, Integer> products;
+    private final Map<Product, Integer> productTray;
     private final Map<Coin, Integer> machineCoins;
     private final Map<Coin, Integer> insertedCoins;
     private final Map<Coin, Integer> changeTray;
     private final CoinFactory coinFactory = new CoinFactory();
     private int insertedValue = 0;
+    private MachineState state = MachineState.INSERT_COIN;
 
     VendingMachine() {
         products = new HashMap<>();
+        productTray = new HashMap<>();
         machineCoins = new HashMap<>();
         insertedCoins = new HashMap<>();
         changeTray = new HashMap<>();
@@ -30,6 +33,7 @@ public class VendingMachine {
     private void addInsertedCoin(Coin c) {
         insertedCoins.merge(c, 1, Integer::sum);
         insertedValue += c.value;
+        state = MachineState.COIN_INSERTED;
     }
 
     public void selectProduct(Product product) {
@@ -38,18 +42,19 @@ public class VendingMachine {
             Optional<Map<Coin, Integer>> change = computeChange(rest);
             if (products.containsKey(product) && products.get(product) > 0) {
                 change.ifPresent((c) -> buyProduct(product, c));
-            } else System.out.println("SOLD OUT");
-        }
+                if (change.isEmpty()) state = MachineState.CANT_MAKE_CHANGE;
+            } else state = MachineState.SOLD_OUT;
+        } else state = MachineState.INSUFFICIENT_FUNDS;
     }
 
     private void buyProduct(Product product, Map<Coin, Integer> change) {
         products.merge(product, -1, Integer::sum);
+        productTray.merge(product, 1, Integer::sum);
 
         withdrawChange(change);
-
         mergeCoins(machineCoins, insertedCoins);
-
         clearInsertedCoins();
+        state = MachineState.PRODUCT_BOUGHT;
     }
 
     private void clearInsertedCoins() {
@@ -117,9 +122,30 @@ public class VendingMachine {
         return Optional.empty();
     }
 
+    void resetState() {
+        if (state.equals(MachineState.CANT_MAKE_CHANGE)
+                || state.equals(MachineState.INSUFFICIENT_FUNDS)
+                || state.equals(MachineState.PRODUCT_BOUGHT)
+                || state.equals(MachineState.SOLD_OUT)
+                || state.equals(MachineState.COIN_INSERTED)
+        ) {
+            state = insertedValue == 0
+                    ? MachineState.INSERT_COIN
+                    : MachineState.COIN_INSERTED;
+        }
+    }
+
     public void returnCoins() {
         changeTray.putAll(insertedCoins);
         clearInsertedCoins();
+    }
+
+    public void takeChange() {
+        changeTray.clear();
+    }
+
+    public void takeProduct() {
+        productTray.clear();
     }
 
     public int getInsertedValue() {
@@ -152,5 +178,13 @@ public class VendingMachine {
 
     public Map<Coin, Integer> getChangeTray() {
         return changeTray;
+    }
+
+    public MachineState getState() {
+        return state;
+    }
+
+    public Map<Product, Integer> getProductTray() {
+        return productTray;
     }
 }
