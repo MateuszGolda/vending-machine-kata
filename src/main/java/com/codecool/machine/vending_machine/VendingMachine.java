@@ -1,4 +1,4 @@
-package com.codecool.machine;
+package com.codecool.machine.vending_machine;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +14,7 @@ public class VendingMachine {
     private int insertedValue = 0;
     private MachineState state = MachineState.INSERT_COIN;
 
-    VendingMachine() {
+    public VendingMachine() {
         products = new HashMap<>();
         productTray = new HashMap<>();
         machineCoins = new HashMap<>();
@@ -122,7 +122,7 @@ public class VendingMachine {
         return Optional.empty();
     }
 
-    void resetState() {
+    public void resetState() {
         if (state.equals(MachineState.CANT_MAKE_CHANGE)
                 || state.equals(MachineState.INSUFFICIENT_FUNDS)
                 || state.equals(MachineState.PRODUCT_BOUGHT)
@@ -148,19 +148,19 @@ public class VendingMachine {
         productTray.clear();
     }
 
-    public int getInsertedValue() {
+    int getInsertedValue() {
         return insertedValue;
     }
 
-    public int getQuarters() {
+    int getQuarters() {
         return machineCoins.getOrDefault(Coin.QUARTER, 0);
     }
 
-    public int getDimes() {
+    int getDimes() {
         return machineCoins.getOrDefault(Coin.DIME, 0);
     }
 
-    public int getNickels() {
+    int getNickels() {
         return machineCoins.getOrDefault(Coin.NICKEL, 0);
     }
 
@@ -172,19 +172,19 @@ public class VendingMachine {
         return products;
     }
 
-    public Map<Coin, Integer> getInsertedCoins() {
+    Map<Coin, Integer> getInsertedCoins() {
         return insertedCoins;
     }
 
-    public Map<Coin, Integer> getChangeTray() {
+    Map<Coin, Integer> getChangeTray() {
         return changeTray;
     }
 
-    public MachineState getState() {
+    MachineState getState() {
         return state;
     }
 
-    public Map<Product, Integer> getProductTray() {
+    Map<Product, Integer> getProductTray() {
         return productTray;
     }
 }

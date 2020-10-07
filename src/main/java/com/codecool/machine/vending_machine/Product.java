@@ -1,4 +1,4 @@
-package com.codecool.machine;
+package com.codecool.machine.vending_machine;
 
 public enum Product {
     COLA(100), CANDY(65), CHIPS(50);

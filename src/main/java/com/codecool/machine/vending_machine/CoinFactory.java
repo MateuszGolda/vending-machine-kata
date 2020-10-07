@@ -1,7 +1,7 @@
-package com.codecool.machine;
+package com.codecool.machine.vending_machine;
 
-public class CoinFactory {
-    public Coin getCoin(int weight, int size) {
+class CoinFactory {
+    Coin getCoin(int weight, int size) {
         for (Coin coin : Coin.values()) {
             if (weight >= coin.weight - coin.weightError
                     && weight <= coin.weight + coin.weightError

@@ -1,4 +1,4 @@
-package com.codecool.machine;
+package com.codecool.machine.vending_machine;
 
 import java.util.Scanner;
 

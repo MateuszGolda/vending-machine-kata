@@ -1,5 +1,10 @@
 package com.codecool.machine;
 
+import com.codecool.machine.vending_machine.Coin;
+import com.codecool.machine.vending_machine.Display;
+import com.codecool.machine.vending_machine.Product;
+import com.codecool.machine.vending_machine.VendingMachine;
+
 import java.util.Map;
 import java.util.Scanner;
 

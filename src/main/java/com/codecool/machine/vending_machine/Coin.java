@@ -1,4 +1,4 @@
-package com.codecool.machine;
+package com.codecool.machine.vending_machine;
 
 public enum Coin {
     NICKEL(5, 500, 50, 5, 2),
