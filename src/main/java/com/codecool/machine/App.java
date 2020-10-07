@@ -36,12 +36,12 @@ public class App {
     private static void initializeMachine() {
         machine = new VendingMachine();
         Map<Coin, Integer> coins = machine.getMachineCoins();
-        coins.put(Coin.QUARTER, 5);
-        coins.put(Coin.DIME, 5);
-        coins.put(Coin.NICKEL, 5);
+        coins.put(Coin.QUARTER, 1);
+        coins.put(Coin.DIME, 0);
+        coins.put(Coin.NICKEL, 1);
 
         Map<Product, Integer> products = machine.getProducts();
-        products.put(Product.COLA, 2);
+        products.put(Product.COLA, 0);
         products.put(Product.CANDY, 2);
         products.put(Product.CHIPS, 2);
     }
